@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meet Someone New — Simple Video Chat</title>
+  <style>
+    :root{
+      --bg-1: #F6EEFF;
+      --bg-2: #FFF5F8;
+      --teal: #38B2AC;
+      --lavender: #805AD5;
+      --peach: #FBB6CE;
+      --muted: #6B7280;
+      --card: rgba(255,255,255,0.72);
+      --glass-blur: 8px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body,#app{height:100%}
+    body{
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color:#0f172a;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+    }
+    .container{
+      width:100%;
+      max-width:980px;
+      position:relative;
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:32px;
+      align-items:center;
+    }
+    .hero{
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.62));
+      border-radius:20px;
+      padding:36px;
+      box-shadow: 0 8px 30px rgba(16,24,40,0.08);
+      backdrop-filter: blur(var(--glass-blur));
+      position:relative;
+      overflow:hidden;
+    }
+    .headline{
+      font-size: clamp(28px, 4vw, 42px);
+      line-height:1.02;
+      font-weight:700;
+      color:#0b1220;
+      margin-bottom:12px;
+    }
+    .sub{
+      font-size: clamp(14px, 2vw, 16px);
+      color: var(--muted);
+      margin-bottom:24px;
+    }
+    .cta-row{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .btn-start{
+      appearance:none;
+      border:0;
+      outline:0;
+      background: linear-gradient(135deg, var(--teal), var(--lavender));
+      color: white;
+      padding:14px 24px;
+      font-size:16px;
+      border-radius:14px;
+      cursor:pointer;
+      box-shadow: 0 8px 20px rgba(56,178,172,0.18);
+      transition: transform .14s ease, box-shadow .14s ease;
+    }
+    .btn-start:hover{ transform: translateY(-4px); box-shadow: 0 18px 30px rgba(56,178,172,0.18); }
+    .btn-secondary{
+      background:transparent;
+      border:1px solid rgba(11,17,32,0.06);
+      color:var(--muted);
+      padding:10px 16px;
+      border-radius:12px;
+      cursor:pointer;
+    }
+    .preview-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.7));
+      border-radius:18px;
+      padding:18px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.05);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+    }
+    .preview-video{
+      width:100%;
+      height:360px;
+      border-radius:12px;
+      background: linear-gradient(180deg, #fff, #f6f6ff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--muted);
+      font-weight:600;
+      box-shadow: inset 0 -6px 18px rgba(128,90,213,0.05);
+      overflow:hidden;
+      position:relative;
+    }
+    .small-note{
+      font-size:13px;
+      color:var(--muted);
+      text-align:center;
+    }
+    .bubbles{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      overflow:visible;
+    }
+    .bubble{
+      position:absolute;
+      border-radius:50%;
+      filter: blur(10px);
+      opacity:0.55;
+      transform: translate3d(0,0,0);
+    }
+    .bubble.b1{ width:220px; height:220px; left:-60px; top:-60px; background: radial-gradient(circle at 30% 30%, rgba(56,178,172,0.9), rgba(56,178,172,0.25)); }
+    .bubble.b2{ width:150px; height:150px; right:-40px; top:40px; background: radial-gradient(circle at 10% 10%, rgba(128,90,213,0.85), rgba(128,90,213,0.18)); }
+    .bubble.b3{ width:120px; height:120px; left:40%; bottom:-40px; background: radial-gradient(circle at 40% 20%, rgba(251,182,206,0.85), rgba(251,182,206,0.12)); }
+    footer{
+      margin-top:18px;
+      display:flex;
+      justify-content:center;
+      gap:16px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    @media (max-width:900px){
+      .container{ grid-template-columns: 1fr; padding:12px; gap:18px; }
+      .preview-card{ order:-1; }
+    }
+    #user-label {
+      position:absolute;
+      top:12px;
+      left:12px;
+      background: rgba(0,0,0,0.3);
+      color:white;
+      padding:6px 12px;
+      border-radius:10px;
+      font-size:14px;
+      z-index:2;
+    }
+    #skipBtn {
+      position:absolute;
+      bottom:12px;
+      right:12px;
+      background: linear-gradient(135deg, var(--teal), var(--lavender));
+      color:white;
+      border:none;
+      padding:8px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      z-index:2;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container" role="main" aria-labelledby="site-title">
+    <div class="hero" aria-hidden="false">
+      <div class="bubbles" aria-hidden="true">
+        <div class="bubble b1"></div>
+        <div class="bubble b2"></div>
+        <div class="bubble b3"></div>
+      </div>
+
+      <h1 id="site-title" class="headline">Meet Someone New, Instantly.</h1>
+      <p class="sub">Press start to begin a random video chat. Friendly faces, zero signup — just press start.</p>
+
+      <div class="cta-row">
+        <button class="btn-start" id="startBtn">Start Chat</button>
+        <button class="btn-secondary" id="howBtn">How it works</button>
+      </div>
+
+      <p style="margin-top:18px;color:var(--muted);font-size:14px;max-width:60ch;">
+        Rooms are short-lived and private — perfect for quick, random conversations.
+      </p>
+
+      <footer>
+        <a href="#" style="color:inherit;text-decoration:none;">About</a>
+        <span>•</span>
+        <a href="#" style="color:inherit;text-decoration:none;">Privacy</a>
+        <span>•</span>
+        <a href="#" style="color:inherit;text-decoration:none;">Contact</a>
+      </footer>
+    </div>
+
+    <aside class="preview-card" aria-label="Preview and info">
+      <div style="display:flex;gap:12px;align-items:center;width:100%;">
+        <div style="width:58px;height:58px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--lavender));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;">
+          VC
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;">Instant Video Rooms</div>
+          <div style="font-size:13px;color:var(--muted)">No signup • Mobile-friendly • Safe quick chats</div>
+        </div>
+      </div>
+
+      <div class="preview-video" aria-hidden="false">
+        <div id="user-label"></div>
+        <div id="jitsi-container" style="width:100%;height:100%;"></div>
+        <button id="skipBtn">Next</button>
+      </div>
+
+      <div class="small-note">Tip: Allow camera & mic access when prompted.</div>
+    </aside>
+  </div>
+
+  <!-- Jitsi API -->
+  <script src='https://meet.jit.si/external_api.js'></script>
+  <script>
+    function generateUsername() {
+      const adjectives = ["Sunny","Blue","Rapid","Calm","Brave","Lucky"];
+      const nouns = ["Tiger","Moon","Fox","Lion","Bear","Eagle"];
+      return adjectives[Math.floor(Math.random()*adjectives.length)] + nouns[Math.floor(Math.random()*nouns.length)] + Math.floor(Math.random()*99);
+    }
+
+    function getCountry(callback) {
+      fetch('https://ipapi.co/json/')
+        .then(res => res.json())
+        .then(data => callback(data.country_name || "Unknown"))
+        .catch(() => callback("Unknown"));
+    }
+
+    let api = null;
+    const userLabel = document.getElementById('user-label');
+    const jitsiContainer = document.getElementById('jitsi-container');
+
+    function startChat() {
+      const room = "uhomegle-" + Date.now().toString(36).slice(-6);
+      jitsiContainer.innerHTML = "";
+
+      const username = generateUsername();
+      getCountry(country => {
+        userLabel.textContent = username + " from " + country;
+      });
+
+      const options = {
+        roomName: room,
+        parentNode: jitsiContainer,
+        width: '100%',
+        height: '100%',
+        interfaceConfigOverwrite: {
+          TOOLBAR_BUTTONS: ['microphone','camera','desktop','hangup','chat','tileview','fullscreen']
+        },
+        configOverwrite: { startWithAudioMuted:false, startWithVideoMuted:false }
+      };
+      if(api) api.dispose(); // dispose previous
+      api = new JitsiMeetExternalAPI('meet.jit.si', options);
+    }
+
+    document.getElementById('startBtn').addEventListener('click', startChat);
+    document.getElementById('skipBtn').addEventListener('click', startChat);
+
+    document.getElementById('howBtn').addEventListener('click', function(){
+      alert("Click Start Chat → allow camera & mic → you'll be placed into a short-lived video room that you can leave anytime.\nUse Next to connect to a new random person.");
+    });
+  </script>
+</body>
+</html>
